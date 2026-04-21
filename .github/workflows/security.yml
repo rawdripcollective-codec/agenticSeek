@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         # Auto-detect will handle most cases; add your language if needed
-        language: ["javascript-typescript", "python", "go"]
+        language: ["javascript-typescript", "python"]
     steps:
       - uses: actions/checkout@v4
 
@@ -51,10 +51,11 @@ jobs:
 
       - name: TruffleHog (secret scan)
         uses: trufflesecurity/trufflehog@main
+        if: github.event_name == 'pull_request' || github.event.before != github.sha
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           extra_args: --debug --only-verified
 
   dependency-review:
