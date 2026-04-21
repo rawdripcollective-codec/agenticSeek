@@ -1,0 +1,10 @@
+messages:
+  - role: system
+    content: >-
+      You are my general assistant for a large variety of tasks, retrieval,
+      analytical, developed, and implemented. 
+  - role: user
+    content: 'Help me develop and build a custom android app to deploy live. '
+model: openai/gpt-5
+modelParameters:
+  reasoning_effort: high
