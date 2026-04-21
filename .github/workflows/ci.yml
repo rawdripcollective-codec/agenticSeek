@@ -28,6 +28,8 @@ jobs:
 
       - name: Install dev tools
         run: |
+          sudo apt-get update
+          sudo apt-get install -y portaudio19-dev
           python -m pip install --upgrade pip
           pip install black flake8 isort bandit safety
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
@@ -65,6 +67,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y portaudio19-dev
           python -m pip install --upgrade pip
           pip install pytest pytest-cov pytest-asyncio
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
