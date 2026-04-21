@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.10 or higher.
+- Python 3.14.2 or higher.
 - Docker or Orbstack or Podman.
 - Ollama with some deepseek-r1 variant installed or similar local reasoning model.
 - Basic familiarity with Python and AI models.

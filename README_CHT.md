@@ -41,7 +41,7 @@ https://github.com/user-attachments/assets/b8ca60e9-7b3b-4533-840e-08f9ac426316
 開始前，請確保已安裝以下軟件：
 
 *   **Git:** 用於克隆倉庫。[下載 Git](https://git-scm.com/downloads)
-*   **Python 3.10.x:** 強烈推薦使用 Python 3.10.x 版本。使用其他版本可能導致依賴錯誤。[下載 Python 3.10](https://www.python.org/downloads/release/python-3100/)（選擇 3.10.x 版本）。
+*   **Python 3.14.2:** 強烈推薦使用 Python 3.14.2 版本。使用其他版本可能導致依賴錯誤。[下載 Python 3.14.2](https://www.python.org/downloads/release/python-3142/)（選擇 3.14.2 版本）。
 *   **Docker Engine & Docker Compose:** 用於運行捆綁服務如 SearxNG。
     *   安裝 Docker Desktop（包含 Docker Compose V2）：[Windows](https://docs.docker.com/desktop/install/windows-install/) | [Mac](https://docs.docker.com/desktop/install/mac-install/) | [Linux](https://docs.docker.com/desktop/install/linux-install/)
     *   或者在 Linux 上分別安裝 Docker Engine 和 Docker Compose：[Docker Engine](https://docs.docker.com/engine/install/) | [Docker Compose](https://docs.docker.com/compose/install/)（確保安裝 Compose V2，例如 `sudo apt-get install docker-compose-plugin`）。

@@ -41,7 +41,7 @@ Descargo de responsabilidad: Esta demostración y todos los archivos que aparece
 Antes de comenzar, asegúrate de tener instalado:
 
 *   **Git:** Para clonar el repositorio. [Descargar Git](https://git-scm.com/downloads)
-*   **Python 3.10.x:** Se recomienda encarecidamente Python 3.10.x. Otras versiones pueden causar errores de dependencia. [Descargar Python 3.10](https://www.python.org/downloads/release/python-3100/) (selecciona la versión 3.10.x).
+*   **Python 3.14.2:** Se recomienda encarecidamente Python 3.14.2. Otras versiones pueden causar errores de dependencia. [Descargar Python 3.14.2](https://www.python.org/downloads/release/python-3142/) (selecciona la versión 3.14.2).
 *   **Docker Engine & Docker Compose:** Para ejecutar servicios empaquetados como SearxNG.
     *   Instalar Docker Desktop (incluye Docker Compose V2): [Windows](https://docs.docker.com/desktop/install/windows-install/) | [Mac](https://docs.docker.com/desktop/install/mac-install/) | [Linux](https://docs.docker.com/desktop/install/linux-install/)
     *   O instalar Docker Engine y Docker Compose por separado en Linux: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Compose](https://docs.docker.com/compose/install/) (asegúrate de instalar Compose V2, por ejemplo `sudo apt-get install docker-compose-plugin`).
