@@ -13,7 +13,7 @@ if %errorlevel% neq 0 (
 REM Initialize uv project if pyproject.toml doesn't exist
 if not exist "pyproject.toml" (
     echo Initializing uv project...
-    uv init --python 3.10
+    uv init --python 3.14.2
     if %errorlevel% neq 0 (
         echo Failed to initialize uv project
         pause
@@ -23,7 +23,7 @@ if not exist "pyproject.toml" (
 
 REM Sync the project (creates venv and installs dependencies)
 echo Setting up Python environment with uv...
-uv sync --python 3.10
+uv sync --python 3.14.2
 if %errorlevel% neq 0 (
     echo Failed to sync uv project
     pause

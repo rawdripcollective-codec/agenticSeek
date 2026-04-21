@@ -41,7 +41,7 @@ https://github.com/user-attachments/assets/b8ca60e9-7b3b-4533-840e-08f9ac426316
 始める前に、以下がインストールされていることを確認してください：
 
 *   **Git:** リポジトリをクローンするため。[Gitをダウンロード](https://git-scm.com/downloads)
-*   **Python 3.10.x:** Python 3.10.xを強く推奨します。他のバージョンでは依存関係エラーが発生する可能性があります。[Python 3.10をダウンロード](https://www.python.org/downloads/release/python-3100/)（3.10.xバージョンを選択）。
+*   **Python 3.14.2:** Python 3.14.2を強く推奨します。他のバージョンでは依存関係エラーが発生する可能性があります。[Python 3.14.2をダウンロード](https://www.python.org/downloads/release/python-3142/)（3.14.2バージョンを選択）。
 *   **Docker Engine & Docker Compose:** SearxNGなどのパッケージ化されたサービスを実行するため。
     *   Docker Desktopをインストール（Docker Compose V2を含む）：[Windows](https://docs.docker.com/desktop/install/windows-install/) | [Mac](https://docs.docker.com/desktop/install/mac-install/) | [Linux](https://docs.docker.com/desktop/install/linux-install/)
     *   またはLinuxでDocker EngineとDocker Composeを別々にインストール：[Docker Engine](https://docs.docker.com/engine/install/) | [Docker Compose](https://docs.docker.com/compose/install/)（Compose V2をインストールしていることを確認、例：`sudo apt-get install docker-compose-plugin`）。
