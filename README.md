@@ -41,7 +41,7 @@ Disclaimer: This demo, including all the files that appear (e.g: CV_candidates.z
 Before you begin, ensure you have the following software installed:
 
 *   **Git:** For cloning the repository. [Download Git](https://git-scm.com/downloads)
-*   **Python 3.10.x:** We strongly recommend using Python version 3.10.x. Using other versions might lead to dependency errors. [Download Python 3.10](https://www.python.org/downloads/release/python-3100/) (pick a 3.10.x version).
+*   **Python 3.14.2:** We strongly recommend using Python version 3.14.2. Using other versions might lead to dependency errors. [Download Python 3.14.2](https://www.python.org/downloads/release/python-3142/) (pick a 3.14.2 version).
 *   **Docker Engine & Docker Compose:** For running bundled services like SearxNG.
     *   Install Docker Desktop (which includes Docker Compose V2): [Windows](https://docs.docker.com/desktop/install/windows-install/) | [Mac](https://docs.docker.com/desktop/install/mac-install/) | [Linux](https://docs.docker.com/desktop/install/linux-install/)
     *   Alternatively, install Docker Engine and Docker Compose separately on Linux: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Compose](https://docs.docker.com/compose/install/) (ensure you install Compose V2, e.g., `sudo apt-get install docker-compose-plugin`).

@@ -41,7 +41,7 @@ Uyarı: Bu demo ve görünen tüm dosyalar (ör: CV_candidates.zip) tamamen kurg
 Başlamadan önce aşağıdaki yazılımların yüklü olduğundan emin olun:
 
 *   **Git:** Depoyu klonlamak için. [Git İndir](https://git-scm.com/downloads)
-*   **Python 3.10.x:** Python 3.10.x sürümünü kullanmanızı şiddetle tavsiye ederiz. Diğer sürümler bağımlılık hatalarına yol açabilir. [Python 3.10 İndir](https://www.python.org/downloads/release/python-3100/) (3.10.x sürümünü seçin).
+*   **Python 3.14.2:** Python 3.14.2 sürümünü kullanmanızı şiddetle tavsiye ederiz. Diğer sürümler bağımlılık hatalarına yol açabilir. [Python 3.14.2 İndir](https://www.python.org/downloads/release/python-3142/) (3.14.2 sürümünü seçin).
 *   **Docker Engine ve Docker Compose:** SearxNG gibi paketlenmiş servisleri çalıştırmak için.
     *   Docker Desktop yükleyin (Docker Compose V2 dahildir): [Windows](https://docs.docker.com/desktop/install/windows-install/) | [Mac](https://docs.docker.com/desktop/install/mac-install/) | [Linux](https://docs.docker.com/desktop/install/linux-install/)
     *   Alternatif olarak, Linux üzerinde Docker Engine ve Docker Compose'u ayrı ayrı yükleyin: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Compose](https://docs.docker.com/compose/install/) (Compose V2 yüklediğinizden emin olun, ör: `sudo apt-get install docker-compose-plugin`).

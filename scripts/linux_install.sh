@@ -29,12 +29,12 @@ sudo apt-get install -y \
 # Initialize uv project if pyproject.toml doesn't exist
 if [ ! -f "pyproject.toml" ]; then
     echo "Initializing uv project..."
-    uv init --python 3.10 || { echo "Failed to initialize uv project"; exit 1; }
+    uv init --python 3.14.2 || { echo "Failed to initialize uv project"; exit 1; }
 fi
 
 # Sync the project (creates venv and installs dependencies)
 echo "Setting up Python environment with uv..."
-uv sync --python 3.10 || { echo "Failed to sync uv project"; exit 1; }
+uv sync --python 3.14.2 || { echo "Failed to sync uv project"; exit 1; }
 
 # Add specific packages
 echo "Adding Selenium..."
