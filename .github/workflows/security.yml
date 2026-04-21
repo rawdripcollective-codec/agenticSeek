@@ -22,8 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Auto-detect will handle most cases; add your language if needed
-        language: ["javascript-typescript", "python", "go"]
+        # Repository only contains Python and JS/TS code today
+        language: ["javascript-typescript", "python"]
     steps:
       - uses: actions/checkout@v4
 
