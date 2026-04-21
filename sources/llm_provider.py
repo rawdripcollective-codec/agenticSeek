@@ -17,6 +17,9 @@ from sources.utility import pretty_print, animate_thinking
 class Provider:
     def __init__(self, provider_name, model, server_address="127.0.0.1:5000", is_local=False):
         self.provider_name = provider_name.lower()
+        # Normalize provider name aliases (e.g. README documents 'togetherAI' but canonical key is 'together')
+        _aliases = {"togetherai": "together"}
+        self.provider_name = _aliases.get(self.provider_name, self.provider_name)
         self.model = model
         self.is_local = is_local
         self.server_ip = server_address
@@ -32,12 +35,14 @@ class Provider:
             "together": self.together_fn,
             "dsk_deepseek": self.dsk_deepseek,
             "openrouter": self.openrouter_fn,
+            "anthropic": self.anthropic_fn,
+            "minimax": self.minimax_fn,
             "test": self.test_fn
         }
         self.logger = Logger("provider.log")
         self.api_key = None
         self.internal_url, self.in_docker = self.get_internal_url()
-        self.unsafe_providers = ["openai", "deepseek", "dsk_deepseek", "together", "google", "openrouter"]
+        self.unsafe_providers = ["openai", "deepseek", "dsk_deepseek", "together", "google", "openrouter", "anthropic", "minimax"]
         if self.provider_name not in self.available_providers:
             raise ValueError(f"Unknown provider: {provider_name}")
         if self.provider_name in self.unsafe_providers and self.is_local == False:
@@ -160,7 +165,11 @@ class Provider:
         Use local or remote Ollama server to generate text.
         """
         thought = ""
-        host = f"{self.internal_url}:11434" if self.is_local else f"http://{self.server_address}"
+        if self.is_local:
+            server_port = self.server_address.split(":")[-1] if ":" in str(self.server_address) else "11434"
+            host = f"{self.internal_url}:{server_port}"
+        else:
+            host = f"http://{self.server_address}"
         client = OllamaClient(host=host)
 
         try:
@@ -339,13 +348,21 @@ class Provider:
         Use local lm-studio server to generate text.
         """
         if self.in_docker:
-            # Extract port from server_address if present
+            # Extract port from server_address, handling both "host:port" and "http://host:port"
             port = "1234"  # default
-            if ":" in self.server_address:
-                port = self.server_address.split(":")[1]
+            addr = self.server_address
+            if "://" not in addr:
+                addr = f"http://{addr}"
+            parsed_addr = urlparse(addr)
+            if parsed_addr.port:
+                port = str(parsed_addr.port)
             url = f"{self.internal_url}:{port}"
         else:
-            url = f"http://{self.server_ip}"
+            # Normalize the address to ensure it has a scheme prefix
+            addr = self.server_ip
+            if "://" not in addr:
+                addr = f"http://{addr}"
+            url = addr
         route_start = f"{url}/v1/chat/completions"
         payload = {
             "messages": history,
@@ -387,7 +404,6 @@ class Provider:
             if "LM Studio" in str(e):
                 raise  # Re-raise our custom exceptions
             raise Exception(f"Unexpected error: {str(e)}") from e
-        return thought
 
     def openrouter_fn(self, history, verbose=False):
         """
@@ -411,6 +427,39 @@ class Provider:
             return thought
         except Exception as e:
             raise Exception(f"OpenRouter API error: {str(e)}") from e
+
+    def minimax_fn(self, history, verbose=False):
+        """
+        Use MiniMax API to generate text via OpenAI-compatible interface.
+
+        Supported models:
+        - MiniMax-M2.7: Latest flagship model with enhanced reasoning and coding
+        - MiniMax-M2.7-highspeed: High-speed version of M2.7 for low-latency scenarios
+        - MiniMax-M2.5: Peak performance model (~60 tps), 204,800 context window
+        - MiniMax-M2.5-highspeed: Same performance, faster (~100 tps)
+
+        Note: temperature must be in range (0.0, 1.0], default is 1.0
+        """
+        load_dotenv()
+        base_url = os.getenv("MINIMAX_BASE_URL", "https://api.minimax.io/v1")
+        
+        client = OpenAI(api_key=self.api_key, base_url=base_url)
+        if self.is_local:
+            raise Exception("MiniMax is not available for local use. Change config.ini")
+        try:
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=history,
+                temperature=1.0,
+            )
+            if response is None:
+                raise Exception("MiniMax response is empty.")
+            thought = response.choices[0].message.content
+            if verbose:
+                print(thought)
+            return thought
+        except Exception as e:
+            raise Exception(f"MiniMax API error: {str(e)}") from e
 
     def dsk_deepseek(self, history, verbose=False):
         """
@@ -436,13 +485,13 @@ class Provider:
                 if chunk['type'] == 'text':
                     thought += chunk['content']
             return thought
-        except AuthenticationError:
+        except AuthenticationError as e:
             raise AuthenticationError("Authentication failed. Please check your token.") from e
-        except RateLimitError:
+        except RateLimitError as e:
             raise RateLimitError("Rate limit exceeded. Please wait before making more requests.") from e
         except CloudflareError as e:
             raise CloudflareError(f"Cloudflare protection encountered: {str(e)}") from e
-        except NetworkError:
+        except NetworkError as e:
             raise NetworkError("Network error occurred. Check your internet connection.") from e
         except APIError as e:
             raise APIError(f"API error occurred: {str(e)}") from e

@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   redis:
@@ -65,7 +64,7 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_BACKEND_URL=http://localhost:7777
+      - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL:-http://localhost:7777}
     networks:
       - agentic-seek-net
 

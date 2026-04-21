@@ -4,7 +4,7 @@
 <img align="center" src="./media/agentic_seek_logo.png" width="300" height="300" alt="Agentic Seek Logo">
 <p>
 
-  English | [中文](./README_CHS.md) | [繁體中文](./README_CHT.md) | [Français](./README_FR.md) | [日本語](./README_JP.md) | [Português (Brasil)](./README_PTBR.md) | [Español](./README_ES.md)
+  English | [中文](./README_CHS.md) | [繁體中文](./README_CHT.md) | [Français](./README_FR.md) | [日本語](./README_JP.md) | [Português (Brasil)](./README_PTBR.md) | [Español](./README_ES.md) | [Türkçe](./README_TR.md)
 
 *一個**100%本地運行的 Manus AI 替代品**，支援語音的 AI 助手，可自主瀏覽網頁、編寫代碼、規劃任務，所有數據僅保存在你的設備上。專為本地推理模型設計，完全在你的硬件上運行，確保隱私無憂，無需雲端依賴。*
 

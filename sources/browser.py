@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -15,11 +15,13 @@ import undetected_chromedriver as uc
 import chromedriver_autoinstaller
 import certifi
 import ssl
+import subprocess
 import time
 import random
 import os
 import shutil
 import uuid
+import socket
 import tempfile
 import markdownify
 import sys
@@ -76,20 +78,51 @@ def get_random_user_agent() -> str:
     ]
     return random.choice(user_agents)
 
+def get_chromedriver_version(chromedriver_path: str) -> str:
+    """Get the major version of a chromedriver binary. Returns empty string on failure."""
+    try:
+        result = subprocess.run(
+            [chromedriver_path, "--version"],
+            capture_output=True, text=True, timeout=10
+        )
+        # Output format: "ChromeDriver 125.0.6422.78 (...)"
+        return result.stdout.strip().split()[1].split('.')[0]
+    except Exception:
+        return ""
+
+def is_chromedriver_compatible(chromedriver_path: str) -> bool:
+    """Check if a chromedriver binary is compatible with the installed Chrome version."""
+    try:
+        chrome_version = chromedriver_autoinstaller.get_chrome_version()
+        if not chrome_version:
+            return True  # Can't determine Chrome version, assume compatible
+        chrome_major = chrome_version.split('.')[0]
+        driver_major = get_chromedriver_version(chromedriver_path)
+        if not driver_major:
+            return True  # Can't determine driver version, assume compatible
+        return chrome_major == driver_major
+    except Exception:
+        return True  # On any error, assume compatible to avoid blocking
+
 def install_chromedriver() -> str:
     """
     Install the ChromeDriver if not already installed. Return the path.
+    Automatically updates the driver if the version does not match the installed Chrome.
     """
     # First try to use chromedriver in the project root directory (as per README)
     project_root_chromedriver = "./chromedriver"
     if os.path.exists(project_root_chromedriver) and os.access(project_root_chromedriver, os.X_OK):
-        print(f"Using ChromeDriver from project root: {project_root_chromedriver}")
-        return project_root_chromedriver
+        if is_chromedriver_compatible(project_root_chromedriver):
+            print(f"Using ChromeDriver from project root: {project_root_chromedriver}")
+            return project_root_chromedriver
+        print("ChromeDriver in project root is outdated, attempting auto-update...")
     
     # Then try to use the system-installed chromedriver
     chromedriver_path = shutil.which("chromedriver")
     if chromedriver_path:
-        return chromedriver_path
+        if is_chromedriver_compatible(chromedriver_path):
+            return chromedriver_path
+        print(f"System ChromeDriver at {chromedriver_path} is outdated, attempting auto-update...")
     
     # In Docker environment, try the fixed path
     if os.path.exists('/.dockerenv'):
@@ -98,9 +131,9 @@ def install_chromedriver() -> str:
             print(f"Using Docker ChromeDriver at {docker_chromedriver_path}")
             return docker_chromedriver_path
     
-    # Fallback to auto-installer only if no other option works
+    # Auto-install matching ChromeDriver version
     try:
-        print("ChromeDriver not found, attempting to install automatically...")
+        print("Installing matching ChromeDriver version automatically...")
         chromedriver_path = chromedriver_autoinstaller.install()
     except Exception as e:
         raise FileNotFoundError(
@@ -120,6 +153,12 @@ def bypass_ssl() -> str:
     """
     pretty_print("Bypassing SSL verification issues, we strongly advice you update your certifi SSL certificate.", color="warning")
     ssl._create_default_https_context = ssl._create_unverified_context
+
+def get_free_port() -> int:
+    """Find and return a free TCP port on the local machine."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
 
 def create_chrome_options(headless=False, stealth_mode=True, crx_path="./crx/nopecha.crx", lang="en") -> Options:
     """Create Chrome options - separated for reusability."""
@@ -147,7 +186,7 @@ def create_chrome_options(headless=False, stealth_mode=True, crx_path="./crx/nop
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-background-timer-throttling")
     chrome_options.add_argument("--timezone=Europe/Paris")
-    chrome_options.add_argument('--remote-debugging-port=9222')
+    chrome_options.add_argument(f'--remote-debugging-port={get_free_port()}')
     chrome_options.add_argument('--disable-background-timer-throttling')
     chrome_options.add_argument('--disable-backgrounding-occluded-windows')
     chrome_options.add_argument('--disable-renderer-backgrounding')
@@ -498,7 +537,16 @@ class Browser:
                 if input_type in ["hidden", "submit", "button", "image"] or not element["displayed"]:
                     continue
                 input_name = element.get("text") or element.get("id") or input_type
-                if input_type == "checkbox" or input_type == "radio":
+                if input_type == "select":
+                    options = element.get("options", [])
+                    options_str = ", ".join(opt["text"] for opt in options if opt["text"])
+                    selected = next((opt["text"] for opt in options if opt.get("selected")), "")
+                    form_strings.append(f"[{input_name}](select: {selected}) options: [{options_str}]")
+                elif input_type == "textarea":
+                    form_strings.append(f"[{input_name}]("")")
+                elif input_type == "file":
+                    form_strings.append(f"[{input_name}](file: )")
+                elif input_type == "checkbox" or input_type == "radio":
                     try:
                         checked_status = "checked" if element.is_selected() else "unchecked"
                     except Exception as e:
@@ -662,7 +710,29 @@ class Browser:
                     self.logger.warning(f"Element '{name}' is not interactable (not displayed or disabled)")
                     continue
                 input_type = (element.get_attribute("type") or "text").lower()
-                if input_type in ["checkbox", "radio"]:
+                tag_name = (element.tag_name or "").lower()
+                if tag_name == "select":
+                    try:
+                        select = Select(element)
+                        select.select_by_visible_text(value)
+                        self.logger.info(f"Selected '{value}' for {name}")
+                    except Exception:
+                        try:
+                            select.select_by_value(value)
+                            self.logger.info(f"Selected value '{value}' for {name}")
+                        except Exception as sel_e:
+                            self.logger.warning(f"Could not select '{value}' for {name}: {sel_e}")
+                elif tag_name == "textarea":
+                    element.clear()
+                    element.send_keys(value)
+                    self.logger.info(f"Filled textarea {name}")
+                elif input_type == "file":
+                    if os.path.isabs(value) and os.path.exists(value):
+                        element.send_keys(value)
+                        self.logger.info(f"Uploaded file '{value}' for {name}")
+                    else:
+                        self.logger.warning(f"File not found: {value}")
+                elif input_type in ["checkbox", "radio"]:
                     is_checked = element.is_selected()
                     should_be_checked = value.lower() == "checked"
 

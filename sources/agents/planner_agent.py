@@ -76,7 +76,12 @@ class PlannerAgent(Agent):
         if blocks == None:
             return []
         for block in blocks:
-            line_json = json.loads(block)
+            try:
+                line_json = json.loads(block)
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Failed to parse JSON block: {e}")
+                pretty_print(f"JSON parsing error: {e}", color="warning")
+                return []
             if 'plan' in line_json:
                 for task in line_json['plan']:
                     if task['agent'].lower() not in [ag_name.lower() for ag_name in self.agents.keys()]:
@@ -142,17 +147,23 @@ class PlannerAgent(Agent):
             pretty_print(f"{task['agent']} -> {task['task']}", color="info")
         pretty_print("▔▗ E N D ▖▔", color="status")
 
-    async def make_plan(self, prompt: str) -> str:
+    async def make_plan(self, prompt: str, max_retries: int = 4) -> str:
         """
         Asks the LLM to make a plan.
         Args:
             prompt (str): The prompt to be sent to the LLM.
+            max_retries (int): Maximum number of retries before giving up.
         Returns:
             str: The plan made by the LLM.
         """
         ok = False
         answer = None
+        retries = 0
         while not ok:
+            if retries >= max_retries:
+                pretty_print(f"Failed to make a plan after {max_retries} attempts. Giving up.", color="failure")
+                self.logger.warning(f"make_plan exceeded max retries ({max_retries}).")
+                return []
             animate_thinking("Thinking...", color="status")
             self.memory.push('user', prompt)
             answer, reasoning = await self.llm_request()
@@ -163,6 +174,7 @@ class PlannerAgent(Agent):
                 self.show_plan(agents_tasks, answer)
                 prompt = f"Failed to parse the tasks. Please write down your task followed by a json plan within ```json. Do not ask for clarification.\n"
                 pretty_print("Failed to make plan. Retrying...", color="warning")
+                retries += 1
                 continue
             self.show_plan(agents_tasks, answer)
             ok = True

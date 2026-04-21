@@ -4,7 +4,7 @@
 <img align="center" src="./media/agentic_seek_logo.png" width="300" height="300" alt="Agentic Seek Logo">
 <p>
 
-  English | [中文](./README_CHS.md) | [繁體中文](./README_CHT.md) | [Français](./README_FR.md) | [日本語](./README_JP.md) | [Português (Brasil)](./README_PTBR.md) | [Español](./README_ES.md)
+  English | [中文](./README_CHS.md) | [繁體中文](./README_CHT.md) | [Français](./README_FR.md) | [日本語](./README_JP.md) | [Português (Brasil)](./README_PTBR.md) | [Español](./README_ES.md) | [Türkçe](./README_TR.md)
 
 *A **100% local alternative to Manus AI**, this voice-enabled AI assistant autonomously browses the web, writes code, and plans tasks while keeping all data on your device. Tailored for local reasoning models, it runs entirely on your hardware, ensuring complete privacy and zero cloud dependency.*
 
@@ -240,6 +240,7 @@ provider_server_address = # Typically ignored or can be left blank when is_local
 | Hugging Face | `huggingface`   | No     | Use models from Hugging Face Inference API.       | [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) |
 | TogetherAI   | `togetherAI`    | No     | Use various open-source models via TogetherAI API.| [api.together.ai/settings/api-keys](https://api.together.ai/settings/api-keys) |
 | OpenRouter   | `openrouter`    | No     | Use OpenRouter Models| [https://openrouter.ai/](https://openrouter.ai/) |
+| MiniMax      | `minimax`       | No     | Use MiniMax models (e.g., MiniMax-M2.7, MiniMax-M2.5).| [platform.minimax.io](https://platform.minimax.io/user-center/basic-information) |
 
 *Note:*
 *   We advise against using `gpt-4o` or other OpenAI models for complex web browsing and task planning as current prompt optimizations are geared towards models like Deepseek.

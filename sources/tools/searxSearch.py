@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
+import sys
 import os
+from urllib.parse import urlencode
 
 if __name__ == "__main__": # if running as a script for individual testing
     sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -16,7 +18,7 @@ class searxSearch(Tools):
         self.tag = "web_search"
         self.name = "searxSearch"
         self.description = "A tool for searching a SearxNG for web search"
-        self.base_url = os.getenv("SEARXNG_BASE_URL")  # Requires a SearxNG base URL
+        self.base_url = base_url or os.getenv("SEARXNG_BASE_URL")  # Requires a SearxNG base URL
         self.user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
         self.paywall_keywords = [
             "Member-only", "access denied", "restricted content", "404", "this page is not working"
@@ -77,7 +79,14 @@ class searxSearch(Tools):
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': self.user_agent
         }
-        data = f"q={query}&categories=general&language=auto&time_range=&safesearch=0&theme=simple".encode('utf-8')
+        data = urlencode({
+            'q': query,
+            'categories': 'general',
+            'language': 'auto',
+            'time_range': '',
+            'safesearch': '0',
+            'theme': 'simple'
+        }).encode('utf-8')
         try:
             response = requests.post(search_url, headers=headers, data=data, verify=False)
             response.raise_for_status()
@@ -101,7 +110,7 @@ class searxSearch(Tools):
         """
         Checks if the execution failed based on the output.
         """
-        return "Error" in output
+        return "Error" in output or "No search results" in output
 
     def interpreter_feedback(self, output: str) -> str:
         """

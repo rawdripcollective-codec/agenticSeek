@@ -4,7 +4,7 @@
 <img align="center" src="./media/agentic_seek_logo.png" width="300" height="300" alt="Agentic Seek Logo">
 <p>
 
-  English | [中文](./README_CHS.md) | [繁體中文](./README_CHT.md) | [Français](./README_FR.md) | [日本語](./README_JP.md) | [Português (Brasil)](./README_PTBR.md) | [Español](./README_ES.md)
+  English | [中文](./README_CHS.md) | [繁體中文](./README_CHT.md) | [Français](./README_FR.md) | [日本語](./README_JP.md) | [Português (Brasil)](./README_PTBR.md) | [Español](./README_ES.md) | [Türkçe](./README_TR.md)
 
 *Un assistant IA avec reconnaissance vocale qui est une **alternative 100% locale à Manus AI**, navigue de manière autonome sur le web, écrit du code et planifie des tâches tout en gardant toutes les données sur votre appareil. Conçu pour des modèles de raisonnement locaux, il fonctionne entièrement sur votre matériel, garantissant une confidentialité totale et zéro dépendance au cloud.*
 

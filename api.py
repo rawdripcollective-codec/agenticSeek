@@ -278,8 +278,11 @@ async def process_query(request: QueryRequest):
         return JSONResponse(status_code=200, content=query_resp.jsonify())
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
-        sys.exit(1)
+        query_resp.answer = f"An error occurred: {str(e)}"
+        query_resp.reasoning = f"Error: {str(e)}"
+        return JSONResponse(status_code=500, content=query_resp.jsonify())
     finally:
+        is_generating = False
         logger.info("Processing finished")
         if config.getboolean('MAIN', 'save_session'):
             interaction.save_session()
@@ -296,4 +299,4 @@ if __name__ == "__main__":
         port = int(envport)
     else:
         port = 7777
-    uvicorn.run(api, host="0.0.0.0", port=7777)
+    uvicorn.run(api, host="0.0.0.0", port=port)
