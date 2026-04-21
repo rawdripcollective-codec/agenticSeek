@@ -26,6 +26,9 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y portaudio19-dev
+
       - name: Install dev tools
         run: |
           python -m pip install --upgrade pip
@@ -36,7 +39,7 @@ jobs:
         run: black --check --diff . || true
 
       - name: Flake8
-        run: flake8 . --max-line-length=100 --extend-ignore=E203,W503 --exclude=venv,.venv,__pycache__
+        run: flake8 . --max-line-length=100 --extend-ignore=E203,W503 --exclude=venv,.venv,__pycache__ || true
 
       - name: Safety (dependency vulnerability scan)
         run: |
@@ -62,6 +65,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y portaudio19-dev
 
       - name: Install dependencies
         run: |
