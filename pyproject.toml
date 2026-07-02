@@ -50,7 +50,7 @@ dependencies = [
     "together>=1.5.0",
     "torch>=2.4.1",
     "tqdm>4",
-    "transformers>=4.46.3",
+    "transformers>=5.3.0",
     "undetected-chromedriver>=3.5.5",
     "uvicorn>=0.34.0",
 ]
