@@ -48,7 +48,7 @@ dependencies = [
     "termcolor>=2.4.0",
     "text2emotion>=0.0.5",
     "together>=1.5.0",
-    "torch>=2.4.1",
+    "torch>=2.13.0",
     "tqdm>4",
     "transformers>=4.46.3",
     "undetected-chromedriver>=3.5.5",
