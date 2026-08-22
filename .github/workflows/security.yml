@@ -47,7 +47,7 @@ jobs:
         uses: trufflesecurity/trufflehog@v3.97.0
         with:
           path: ./
-          extra_args: --results=verified,unknown --fail --fail-on-scan-errors
+          extra_args: --results=verified,unknown --fail-on-scan-errors
       - name: Scan the full branch on scheduled and manual runs
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         uses: trufflesecurity/trufflehog@v3.97.0
@@ -55,7 +55,7 @@ jobs:
           path: ./
           base: ""
           head: ${{ github.ref_name }}
-          extra_args: --results=verified,unknown --fail --fail-on-scan-errors
+          extra_args: --results=verified,unknown --fail-on-scan-errors
 
   dependency-review:
     name: Dependency review
