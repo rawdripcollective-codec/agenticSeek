@@ -6,64 +6,64 @@ on:
   pull_request:
     branches: [main, master]
   schedule:
-    # Run every Monday at 09:00 UTC
     - cron: "0 9 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
   security-events: write
-  actions: read
 
 jobs:
   codeql:
-    name: CodeQL Analysis
+    name: CodeQL (${{ matrix.language }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # Auto-detect will handle most cases; add your language if needed
-        language: ["javascript-typescript", "python", "go"]
+        language: [javascript-typescript, python]
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v5
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
-
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/autobuild@v4
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: /language:${{ matrix.language }}
 
   secret-scan:
-    name: Secret Detection
+    name: Secret detection
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: TruffleHog (secret scan)
-        uses: trufflesecurity/trufflehog@main
+      - name: Scan push and pull-request changes
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: trufflesecurity/trufflehog@v3.97.0
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --results=verified,unknown --fail --fail-on-scan-errors
+      - name: Scan the full branch on scheduled and manual runs
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        uses: trufflesecurity/trufflehog@v3.97.0
+        with:
+          path: ./
+          base: ""
+          head: ${{ github.ref_name }}
+          extra_args: --results=verified,unknown --fail --fail-on-scan-errors
 
   dependency-review:
-    name: Dependency Review
+    name: Dependency review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
-      - name: Dependency Review
+      - uses: actions/checkout@v5
+      - name: Dependency review
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high

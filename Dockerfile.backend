@@ -1,6 +1,11 @@
 
-FROM --platform=linux/amd64 python:3.11.12
-ENV DEBIAN_FRONTEND=noninteractive
+FROM python:3.11.12
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    DISPLAY=:99 \
+    BACKEND_PORT=7777
 
 # Install essential packages and Chrome dependencies
 RUN apt-get update -y && apt-get install -y \
@@ -81,10 +86,8 @@ RUN set -eux; \
 
 RUN chmod +x /opt/chrome/chrome
 
-RUN pip3 install --upgrade pip setuptools wheel
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.lock .
+RUN python -m pip install --upgrade pip setuptools wheel && python -m pip install -r requirements.lock
 
 RUN mkdir -p /opt/workspace
 RUN mkdir -p /tmp && chmod 1777 /tmp
@@ -97,7 +100,14 @@ COPY crx/ crx/
 COPY llm_router/ llm_router/
 COPY config.ini .
 
-EXPOSE 8000
+RUN useradd --create-home --uid 10001 appuser \
+    && mkdir -p /app/.screenshots /opt/workspace \
+    && chown -R appuser:appuser /app /opt/workspace
 
-# Run the application
+USER appuser
+
+EXPOSE 7777
+HEALTHCHECK --interval=15s --timeout=5s --start-period=90s --retries=5 \
+    CMD python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.getenv('BACKEND_PORT', '7777'), timeout=3).read()" || exit 1
+
 CMD ["python3", "api.py"]

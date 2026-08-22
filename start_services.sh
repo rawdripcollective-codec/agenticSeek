@@ -1,141 +1,105 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+set -euo pipefail
+
+if [[ ! -f .env ]]; then
+    echo "Error: .env is missing. Copy .env.example to .env and set WORK_DIR and SEARXNG_SECRET_KEY."
+    exit 1
+fi
+
+set -a
 source .env
+set +a
 
 command_exists() {
-    command -v "$1" &> /dev/null
+    command -v "$1" >/dev/null 2>&1
 }
-if [ -z "$WORK_DIR" ]; then
-    echo "Error: WORK_DIR environment variable is not set. Please set it in your .env file."
+
+if [[ -z "${WORK_DIR:-}" ]]; then
+    echo "Error: WORK_DIR is not set. Set it to the absolute path of the workspace to mount."
     exit 1
 fi
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    dir_size_bytes=$(du -s -b "$WORK_DIR" 2>/dev/null | awk '{print $1}')
-else
-    dir_size_bytes=$(du -s --bytes "$WORK_DIR" 2>/dev/null | awk '{print $1}')
-fi
-
-max_size_bytes=$((2 * 1024 * 1024 * 1024 * 10))
-
-echo "Mounting $WORK_DIR ($dir_size_bytes bytes) to docker."
-
-if [ -n "$dir_size_bytes" ] && [ "$dir_size_bytes" -gt "$max_size_bytes" ]; then
-    echo "Error: WORK_DIR ($WORK_DIR) contains more than 20GB of data ($(du -sh "$WORK_DIR" 2>/dev/null | awk '{print $1}'))."
+if [[ ! -d "$WORK_DIR" ]]; then
+    echo "Error: WORK_DIR does not exist or is not a directory: $WORK_DIR"
     exit 1
 fi
 
-if [ "$1" = "full" ]; then
-    echo "Starting full deployment with backend and all services..."
-else
-    echo "Starting core deployment with frontend and search services only... use ./start_services.sh full to start backend as well"
+if [[ "${1:-}" != "" && "${1:-}" != "full" ]]; then
+    echo "Usage: $0 [full]"
+    exit 1
 fi
 
 if ! command_exists docker; then
-    echo "Error: Docker is not installed. Please install Docker first."
-    echo "On Ubuntu: sudo apt install docker.io"
-    echo "On macOS/Windows: Install Docker Desktop from https://www.docker.com/get-started/"
+    echo "Error: Docker is not installed. Install Docker Engine or Docker Desktop first."
     exit 1
 fi
 
-# Check if Docker daemon is running
-echo "Checking if Docker daemon is running..."
-if ! docker info &> /dev/null; then
+if ! docker info >/dev/null 2>&1; then
     echo "Error: Docker daemon is not running or inaccessible."
-    if [ "$(uname)" = "Linux" ]; then
-        echo "Trying to start Docker service (may require sudo)..."
-        if sudo systemctl start docker &> /dev/null; then
-            echo "Docker started successfully."
-        else
-            echo "Failed to start Docker. Possible issues:"
-            echo "1. Run this script with sudo: sudo bash setup_searxng.sh"
-            echo "2. Check Docker installation: sudo systemctl status docker"
-            echo "3. Add your user to the docker group: sudo usermod -aG docker $USER (then log out and back in)"
-            exit 1
-        fi
-    else
-        echo "Please start Docker manually:"
-        echo "- On macOS/Windows: Open Docker Desktop."
-        echo "- On Linux: Run 'sudo systemctl start docker' or check your distro's docs."
-        exit 1
-    fi
-else
-    echo "Docker daemon is running."
+    exit 1
 fi
 
-# Check if Docker Compose is installed
-# Prefer the newer 'docker compose' command if available
 if docker compose version >/dev/null 2>&1; then
-    echo "Using newer docker compose (v2)."
-    COMPOSE_CMD="docker compose"
-elif command_exists docker-compose; then
-    echo "Using old docker-compose."
-    COMPOSE_CMD="docker-compose"
+    COMPOSE_CMD=(docker compose)
 else
-    echo "Error: Docker Compose is not installed. Please install it first."
-    echo "On Ubuntu: sudo apt install docker-compose-plugin"
-    echo "Or install Docker Desktop which includes compose v2"
+    echo "Error: Docker Compose V2 is required."
     exit 1
 fi
 
-# Check if docker-compose.yml exists
-if [ ! -f "docker-compose.yml" ]; then
-    echo "Error: docker-compose.yml not found in the current directory."
+if ! "${COMPOSE_CMD[@]}" config --quiet; then
+    echo "Error: Compose configuration is invalid. Resolve the reported configuration error before starting services."
     exit 1
 fi
 
-# Stop only the backend container if it's running to ensure a clean state
-if docker ps --format '{{.Names}}' | grep -q '^backend$'; then
-    echo "New start: (re)starting backend container..."
-    docker stop backend
-    echo "Backend container stopped."
+if [[ -z "${SEARXNG_SECRET_KEY:-}" ]]; then
+    echo "Error: SEARXNG_SECRET_KEY is not set. Generate one with: openssl rand -hex 32"
+    exit 1
 fi
 
-# export searxng secret key (cross-platform)
-if command -v openssl &> /dev/null; then
-    export SEARXNG_SECRET_KEY=$(openssl rand -hex 32)
+if [[ "$OSTYPE" == darwin* ]]; then
+    dir_size_bytes=$(du -sk "$WORK_DIR" | awk '{print $1 * 1024}')
 else
-    # Fallback: use Python if openssl is not available
-    if command -v python3 &> /dev/null; then
-        export SEARXNG_SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
-    else
-        echo "Error: Neither openssl nor python is available to generate a secret key."
-        exit 1
-    fi
+    dir_size_bytes=$(du -s --bytes "$WORK_DIR" | awk '{print $1}')
+fi
+max_size_bytes=$((20 * 1024 * 1024 * 1024))
+
+if [[ "$dir_size_bytes" -gt "$max_size_bytes" ]]; then
+    echo "Error: WORK_DIR contains more than 20 GB of data. Use a smaller workspace mount."
+    exit 1
 fi
 
-if [ "$1" = "full" ]; then
-    # First start backend and wait for it to be healthy
-    echo "Full docker deployment. Starting backend service..."
-    if ! $COMPOSE_CMD up -d backend; then
-        echo "Error: Failed to start backend container."
-        exit 1
-    fi
-    # Wait for backend to be healthy (check if it's running and not restarting)
-    echo "Waiting for backend to be ready..."
-    for i in {1..30}; do
-        if [ "$(docker inspect -f '{{.State.Running}}' backend)" = "true" ] && \
-           [ "$(docker inspect -f '{{.State.Restarting}}' backend)" = "false" ]; then
-            echo "backend is ready!"
-            break
-        fi
-        if [ $i -eq 30 ]; then
-            echo "Error: backend failed to start properly after 30 seconds"
-            $COMPOSE_CMD logs backend 
-            exit 1
-        fi
-        sleep 1
-    done
-    if ! $COMPOSE_CMD --profile full up; then
-        echo "Error: Failed to start containers. Check Docker logs with '$COMPOSE_CMD logs'."
-        echo "Possible fixes: Run with sudo or ensure port 8080 is free."
-        exit 1
-    fi
-else
-    if ! $COMPOSE_CMD --profile core up; then
-        echo "Error: Failed to start containers. Check Docker logs with '$COMPOSE_CMD logs'."
-        echo "Possible fixes: Run with sudo or ensure port 8080 is free."
-        exit 1
-    fi
+if [[ "${1:-}" != "full" ]]; then
+    echo "Starting frontend, SearxNG, and Valkey. Run '$0 full' to start the backend as well."
+    "${COMPOSE_CMD[@]}" --profile core up -d
+    exit 0
 fi
-sleep 10
+
+backend_port="${BACKEND_PORT:-7777}"
+if ! [[ "$backend_port" =~ ^[0-9]+$ ]] || ((backend_port < 1 || backend_port > 65535)); then
+    echo "Error: BACKEND_PORT must be an integer from 1 to 65535."
+    exit 1
+fi
+
+startup_timeout="${BACKEND_STARTUP_TIMEOUT:-300}"
+if ! [[ "$startup_timeout" =~ ^[0-9]+$ ]] || ((startup_timeout < 1)); then
+    echo "Error: BACKEND_STARTUP_TIMEOUT must be a positive integer."
+    exit 1
+fi
+
+echo "Starting full deployment. Backend readiness may take several minutes while Chrome and providers initialize."
+"${COMPOSE_CMD[@]}" --profile full up -d --build
+
+echo "Waiting for the backend readiness endpoint."
+for ((attempt = 1; attempt <= startup_timeout; attempt++)); do
+    if curl --fail --silent --show-error "http://127.0.0.1:${backend_port}/health" >/dev/null; then
+        echo "Backend is ready at http://127.0.0.1:${backend_port}/health"
+        echo "Frontend is available at http://127.0.0.1:3000"
+        exit 0
+    fi
+    sleep 1
+done
+
+echo "Error: backend did not become ready within ${startup_timeout} seconds."
+"${COMPOSE_CMD[@]}" logs --tail=200 backend
+exit 1

@@ -1,11 +1,12 @@
-import os, sys
-from typing import List, Tuple, Type, Dict
 import datetime
 import logging
+import os
+from typing import Dict, List, Tuple, Type
+
 
 class Logger:
     def __init__(self, log_filename):
-        self.folder = '.logs'
+        self.folder = ".logs"
         self.create_folder(self.folder)
         self.log_path = os.path.join(self.folder, log_filename)
         self.enabled = True
@@ -20,21 +21,20 @@ class Logger:
         self.logger.handlers.clear()
         self.logger.propagate = False
         file_handler = logging.FileHandler(self.log_path)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(formatter)
         self.logger.addHandler(file_handler)
 
-    
     def create_folder(self, path):
         """Create log dir"""
         try:
             if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True) 
+                os.makedirs(path, exist_ok=True)
             return True
         except Exception as e:
             self.enabled = False
             return False
-    
+
     def log(self, message, level=logging.INFO):
         if self.last_log_msg == message:
             return
@@ -51,11 +51,9 @@ class Logger:
     def warning(self, message):
         self.log(message, level=logging.WARN)
 
+
 if __name__ == "__main__":
     lg = Logger("test.log")
     lg.log("hello")
     lg2 = Logger("toto.log")
     lg2.log("yo")
-    
-
-        

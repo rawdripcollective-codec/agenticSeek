@@ -31,17 +31,20 @@ class Memory():
         self.session_id = str(uuid.uuid4())
         self.conversation_folder = f"conversations/"
         self.session_recovered = False
-        if recover_last_session:
-            self.load_memory()
-            self.session_recovered = True
-        # memory compression system
         self.model = None
         self.tokenizer = None
         self.device = self.get_cuda_device()
         self.memory_compression = memory_compression
         self.model_provider = model_provider
+
+        if recover_last_session:
+            self.load_memory()
+            self.session_recovered = True
+
         if self.memory_compression:
             self.download_model()
+            if self.session_recovered:
+                self.compress()
 
     def get_ideal_ctx(self, model_name: str) -> int | None:
         """
@@ -295,9 +298,8 @@ Use the -I flag to specify the directory containing helper_functions.h.
 Ensure the file exists in the specified location.
     """
     memory.push('assistant', sample_text)
-    
+
     print("\n---\nmemory before:", memory.get())
     memory.compress()
     print("\n---\nmemory after:", memory.get())
     #memory.save_memory()
-    

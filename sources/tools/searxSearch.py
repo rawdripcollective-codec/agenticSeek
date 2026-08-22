@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import requests
 import sys
 import os
 from urllib.parse import urlencode
@@ -88,7 +89,7 @@ class searxSearch(Tools):
             'theme': 'simple'
         }).encode('utf-8')
         try:
-            response = requests.post(search_url, headers=headers, data=data, verify=False)
+            response = requests.post(search_url, headers=headers, data=data, timeout=10)
             response.raise_for_status()
             html_content = response.text
             soup = BeautifulSoup(html_content, 'html.parser')
@@ -103,8 +104,8 @@ class searxSearch(Tools):
             if len(results) == 0:
                 return "No search results, web search failed."
             return "\n\n".join(results)  # Return results as a single string, separated by newlines
-        except requests.exceptions.RequestException as e:
-            raise Exception("\nSearxng search failed. did you run start_services.sh? is docker still running?") from e
+        except requests.exceptions.RequestException:
+            return "Error during search: SearxNG is unavailable. Check the service health and network configuration."
 
     def execution_failure_check(self, output: str) -> bool:
         """
