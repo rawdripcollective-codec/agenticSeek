@@ -97,8 +97,14 @@ assert_http_status 200 OPTIONS "$BACKEND_URL/query" \
   --header "Origin: http://localhost:3000" \
   --header "Access-Control-Request-Method: POST"
 
-if ! curl --fail --silent --show-error "$FRONTEND_URL/" | grep -Fq "$REACT_APP_BACKEND_URL"; then
-  printf 'FAIL: frontend bundle does not contain the configured backend endpoint %s\n' "$REACT_APP_BACKEND_URL" >&2
+frontend_index=$(curl --fail --silent --show-error "$FRONTEND_URL/")
+frontend_bundle_path=$(grep -oE '/static/js/main\.[a-zA-Z0-9_-]+\.js' <<<"$frontend_index" | head -n 1)
+if [[ -z "$frontend_bundle_path" ]]; then
+  printf 'FAIL: frontend HTML does not reference a production JavaScript bundle\n' >&2
+  exit 1
+fi
+if ! curl --fail --silent --show-error "$FRONTEND_URL$frontend_bundle_path" | grep -Fq "$REACT_APP_BACKEND_URL"; then
+  printf 'FAIL: frontend JavaScript bundle does not contain the configured backend endpoint %s\n' "$REACT_APP_BACKEND_URL" >&2
   exit 1
 fi
 printf 'PASS: frontend bundle is configured for the expected backend endpoint\n'
