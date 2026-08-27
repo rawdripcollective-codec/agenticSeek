@@ -300,6 +300,7 @@ async def think_wrapper(interaction: "Interaction", query: str) -> bool:
         success = await interaction.think()
     except Exception as error:
         logger.error(f"Agent request failed: {type(error).__name__}")
+        print(f"[AgenticSeek] Agent request failed: {type(error).__name__}.")
         interaction.last_answer = ""
         interaction.last_reasoning = "An internal agent error occurred. Check backend logs."
         interaction.last_success = False
@@ -377,6 +378,7 @@ async def process_query(request: Request, payload: QueryRequest):
         except Exception as error:
             query_response.reasoning = "An internal agent error occurred. Check backend logs."
             logger.error(f"Query processing failed: {type(error).__name__}")
+            print(f"[AgenticSeek] Query processing failed: {type(error).__name__}.")
             return JSONResponse(status_code=500, content=query_response.jsonify())
         finally:
             if config_bool("MAIN", "save_session", "AGENTICSEEK_SAVE_SESSION"):

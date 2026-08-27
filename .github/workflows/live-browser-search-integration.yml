@@ -32,4 +32,5 @@ jobs:
         with:
           name: live-browser-search-compose-diagnostics
           path: .live-browser-search-test-logs/
+          include-hidden-files: true
           if-no-files-found: ignore
