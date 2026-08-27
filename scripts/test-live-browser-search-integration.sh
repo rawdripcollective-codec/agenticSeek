@@ -52,16 +52,16 @@ wait_for_ready() {
 assert_browser_search_path() {
   local backend_log
   backend_log=$("${COMPOSE[@]}" logs --no-color backend)
-  if ! grep -Fq 'Selected agent: Browser (roles: web)' <<<"$backend_log"; then
-    printf 'FAIL: request did not route to the browser agent\n' >&2
+  if ! grep -Fq 'Agent Web started working...' <<<"$backend_log"; then
+    printf 'FAIL: planner did not delegate work to the browser agent\n' >&2
     return 1
   fi
   if ! grep -Fq 'Search results:' <<<"$backend_log"; then
     printf 'FAIL: browser agent did not obtain SearxNG search results\n' >&2
     return 1
   fi
-  if ! grep -Fq 'Navigating to ' <<<"$backend_log"; then
-    printf 'FAIL: browser agent did not navigate to a public search result\n' >&2
+  if ! grep -Fq 'I will navigate to https://www.iana.org/help/example-domains' <<<"$backend_log"; then
+    printf 'FAIL: browser agent did not navigate to the expected public IANA result\n' >&2
     return 1
   fi
 }
@@ -87,10 +87,6 @@ if ! grep -Eq '"done"[[:space:]]*:[[:space:]]*"true"' "$RESPONSE_FILE"; then
 fi
 if ! grep -Eq '"success"[[:space:]]*:[[:space:]]*"true"' "$RESPONSE_FILE"; then
   printf 'FAIL: live browser-agent response did not report success\n' >&2
-  exit 1
-fi
-if ! grep -Eq '"agent_name"[[:space:]]*:[[:space:]]*"Browser"' "$RESPONSE_FILE"; then
-  printf 'FAIL: live request did not identify Browser as the responding agent\n' >&2
   exit 1
 fi
 if ! grep -Eq '"answer"[[:space:]]*:[[:space:]]*"[^\"]+"' "$RESPONSE_FILE"; then
