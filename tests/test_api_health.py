@@ -74,6 +74,8 @@ def test_query_success_metadata_is_lowercase_for_successful_agent(monkeypatch):
     interaction.agents = []
     interaction.current_agent.agent_name = "test-agent"
     interaction.current_agent.get_blocks_result.return_value = []
+    interaction.last_answer = "Live agent reply"
+    interaction.last_reasoning = "Live agent reasoning"
     interaction.last_success = True
     monkeypatch.setattr(api_module, "initialize_system", lambda: interaction)
 
