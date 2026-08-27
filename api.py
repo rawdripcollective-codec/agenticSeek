@@ -367,7 +367,7 @@ async def process_query(request: Request, payload: QueryRequest):
             query_response.answer = interaction.last_answer
             query_response.reasoning = interaction.last_reasoning
             query_response.agent_name = interaction.current_agent.agent_name
-            query_response.success = str(interaction.last_success)
+            query_response.success = "true" if interaction.last_success else "false"
             query_response.blocks = {
                 str(index): block.jsonify()
                 for index, block in enumerate(interaction.current_agent.get_blocks_result())

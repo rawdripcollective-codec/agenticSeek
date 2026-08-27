@@ -67,3 +67,23 @@ def test_health_returns_service_unavailable_when_initialization_fails(monkeypatc
 
     assert response.status_code == 503
     assert response.json()["status"] == "not_ready"
+
+
+def test_query_success_metadata_is_lowercase_for_successful_agent(monkeypatch):
+    interaction = MagicMock()
+    interaction.agents = []
+    interaction.current_agent.agent_name = "test-agent"
+    interaction.current_agent.get_blocks_result.return_value = []
+    interaction.last_success = True
+    monkeypatch.setattr(api_module, "initialize_system", lambda: interaction)
+
+    async def successful_think_wrapper(_interaction, _query):
+        return True
+
+    monkeypatch.setattr(api_module, "think_wrapper", successful_think_wrapper)
+
+    with TestClient(api_module.api) as client:
+        response = client.post("/query", json={"query": "hi", "tts_enabled": False})
+
+    assert response.status_code == 200
+    assert response.json()["success"] == "true"
