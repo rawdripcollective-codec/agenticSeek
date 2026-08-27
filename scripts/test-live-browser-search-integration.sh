@@ -12,6 +12,10 @@ if [[ -z "${GOOGLE_API_KEY:-}" ]]; then
   printf 'GOOGLE_API_KEY is required for the live browser and web-search integration test.\n' >&2
   exit 1
 fi
+if ! command -v jq >/dev/null 2>&1; then
+  printf 'jq is required to validate the non-sensitive JSON response metadata.\n' >&2
+  exit 1
+fi
 
 export BACKEND_BIND_ADDRESS="${BACKEND_BIND_ADDRESS:-127.0.0.1}"
 export FRONTEND_BIND_ADDRESS="${FRONTEND_BIND_ADDRESS:-127.0.0.1}"
@@ -81,15 +85,15 @@ if [[ "$http_status" != "200" ]]; then
   printf 'FAIL: live browser-agent request returned HTTP %s\n' "$http_status" >&2
   exit 1
 fi
-if ! grep -Eq '"done"[[:space:]]*:[[:space:]]*"true"' "$RESPONSE_FILE"; then
+if ! jq -e '(.done == "true")' "$RESPONSE_FILE" >/dev/null; then
   printf 'FAIL: live browser-agent response did not report completion\n' >&2
   exit 1
 fi
-if ! grep -Eq '"success"[[:space:]]*:[[:space:]]*"true"' "$RESPONSE_FILE"; then
+if ! jq -e '(.success == "true")' "$RESPONSE_FILE" >/dev/null; then
   printf 'FAIL: live browser-agent response did not report success\n' >&2
   exit 1
 fi
-if ! grep -Eq '"answer"[[:space:]]*:[[:space:]]*"[^\"]+"' "$RESPONSE_FILE"; then
+if ! jq -e '(.answer | type == "string" and length > 0)' "$RESPONSE_FILE" >/dev/null; then
   printf 'FAIL: live browser-agent response did not contain an answer\n' >&2
   exit 1
 fi
