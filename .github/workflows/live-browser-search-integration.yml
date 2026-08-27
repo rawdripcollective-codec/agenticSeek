@@ -31,5 +31,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: live-browser-search-compose-diagnostics
-          path: .live-browser-search-test-logs/compose.log
+          path: .live-browser-search-test-logs/
           if-no-files-found: ignore

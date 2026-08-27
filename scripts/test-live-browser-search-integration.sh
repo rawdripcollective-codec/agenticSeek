@@ -31,6 +31,7 @@ cleanup() {
   local exit_code=$?
   "${COMPOSE[@]}" ps || true
   "${COMPOSE[@]}" logs --no-color >"$COMPOSE_LOG_FILE" 2>&1 || true
+  "${COMPOSE[@]}" cp backend:/app/.logs/backend.log "$TEST_LOG_DIR/backend.log" >/dev/null 2>&1 || true
   if [[ "${KEEP_LIVE_INTEGRATION_STACK:-false}" != "true" ]]; then
     "${COMPOSE[@]}" down --volumes --remove-orphans || true
   fi
