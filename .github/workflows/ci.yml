@@ -88,10 +88,30 @@ jobs:
           REACT_APP_BACKEND_URL: http://localhost:7777
         run: npm run build
 
+  compose-integration:
+    name: Compose integration suite
+    runs-on: ubuntu-latest
+    needs: [quality, test, frontend]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run Compose health and service integration suite
+        run: |
+          chmod +x scripts/test-compose-integration.sh
+          ./scripts/test-compose-integration.sh
+      - name: Upload Compose diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-integration-diagnostics
+          path: .integration-test-logs/compose.log
+          if-no-files-found: ignore
+
   docker:
     name: Docker build and publish
     runs-on: ubuntu-latest
-    needs: [quality, test, frontend]
+    needs: [quality, test, frontend, compose-integration]
     permissions:
       contents: read
       packages: write
