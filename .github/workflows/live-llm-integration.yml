@@ -1,0 +1,35 @@
+name: Live LLM Compose integration
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: live-llm-compose-integration
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  live-gemini-agent:
+    name: Live Gemini agent request
+    runs-on: ubuntu-latest
+    environment: live-llm-integration
+    timeout-minutes: 20
+    env:
+      GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify live-provider credential is configured
+        run: test -n "$GOOGLE_API_KEY"
+      - name: Run live Gemini Compose integration test
+        run: |
+          chmod +x scripts/test-live-llm-integration.sh
+          ./scripts/test-live-llm-integration.sh
+      - name: Upload service diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-llm-compose-diagnostics
+          path: .live-integration-test-logs/compose.log
+          if-no-files-found: ignore

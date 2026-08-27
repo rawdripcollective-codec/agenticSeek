@@ -1,0 +1,4 @@
+services:
+  backend:
+    volumes:
+      - ./config.live-integration.ini:/app/config.ini:ro
