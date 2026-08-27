@@ -1,0 +1,35 @@
+name: Live browser and web-search integration
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: live-browser-search-integration
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  live-browser-search:
+    name: Live Gemini browser and web search
+    runs-on: ubuntu-latest
+    environment: live-browser-search-integration
+    timeout-minutes: 25
+    env:
+      GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify live-provider credential is configured
+        run: test -n "$GOOGLE_API_KEY"
+      - name: Run live browser and web-search Compose integration test
+        run: |
+          chmod +x scripts/test-live-browser-search-integration.sh
+          ./scripts/test-live-browser-search-integration.sh
+      - name: Upload service diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-browser-search-compose-diagnostics
+          path: .live-browser-search-test-logs/compose.log
+          if-no-files-found: ignore
