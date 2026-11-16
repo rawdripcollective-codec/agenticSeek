@@ -10,7 +10,7 @@ dependencies = [
     "anyio>=3.5.0,<5",
     "beautifulsoup4>=4.12.3",
     "celery>=5.5.1",
-    "certifi==2025.4.26",
+    "certifi==2026.10.23",
     "chromedriver-autoinstaller>=0.6.4",
     "colorama>=0.4.6",
     "distro>=1.7.0,<2",
